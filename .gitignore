@@ -1,4 +1,2 @@
 # Specify filepatterns you want git to ignore.
-*.sym
-*.vs
-*.txt
+bin/
