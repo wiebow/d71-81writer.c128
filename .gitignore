@@ -2,3 +2,5 @@
 bin/*.sym
 bin/*.vs
 bin/*.txt
+.vscode
+*.code-workspace
