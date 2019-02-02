@@ -20,11 +20,15 @@
 MAIN:
         :SetBankConfiguration(15)
         jsr DISPLAY_WELCOME
+#if !EMU
         jsr DISPLAY_ULTIDOS
         cpx #10                 // x is incremented for each char printed
         bcs !+                  // =>10 chars printed, so DOS is available
         jsr DISPLAY_NODOS_ERROR
         rts                     // fail. exit.
+#else
+        jsr DISPLAY_EMU_WARNING
+#endif
 !:
         // todo : REU check
         // set and display current DOS path. default is /usb0/
@@ -246,6 +250,16 @@ DISPLAY_PROGRESS:
         bne !-
         rts
 
+// Display emulation warning
+// (for when testing this with vice)
+#if EMU
+DISPLAY_EMU_WARNING:
+        lda #>str_emu
+        ldx #<str_emu
+        jsr PRINT
+        rts
+#endif
+
 // Set cursor at a new line
 
 NEW_LINE:
@@ -324,6 +338,17 @@ str_error_cmd:
 str_error_buffer:
         .text "! Cannot open buffer to "
         .byte 0
+
+#if EMU
+str_emu:
+        .byte $0d
+        .text "EMU build. Ultimate parts are skipped!"
+        .byte $0d
+        .text "DO NOT RELEASE"
+        .byte $0d
+        .byte $0d
+        .byte 0
+#endif
 
 // status read from the ultimate
 

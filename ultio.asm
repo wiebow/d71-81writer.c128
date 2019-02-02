@@ -62,6 +62,7 @@ wait_data:
 // Display Data read from the ultimate
 // If no data at all is recieved, then x is 0 upun return
 ULT_DISPLAY_DATA:
+#if !EMU
         ldx #0                  // data count
 !:
         jsr ULT_READ_DATA
@@ -71,17 +72,21 @@ ULT_DISPLAY_DATA:
         inx
         jmp !-
 !:
+#endif
         rts
 
 // Display Status read from the ultimate
 DISPLAY_ULT_STATUS:
+#if !EMU
         ldy #$01
         jsr read_status
         jsr NEW_LINE
+#endif
         rts
 
 // Get Status from the ultimate
 GET_ULT_STATUS:
+#if !EMU
         ldy #$00
 read_status:
         lda #$00
@@ -114,17 +119,23 @@ check_print:
 !end:
         rts
 !print:
-        jsr BSOUT
+        jsr BSOUT        
         jmp !next-
-
+#else
+        rts
+#endif
 // Checks if the status code is OK.
 // Just as CMP the zero flag holds the result.
 STATUS_OK:
+#if !EMU
         lda status
         beq !next+
         rts
 !next:
         lda status+1
+#else
+        lda #$00
+#endif       
         rts
 
 
