@@ -10,6 +10,62 @@
 
 .label buffer   = $fb  // sector buffer zero page pointer
 
+WRITE:
+        // open command channel to device
+
+        jsr COMMAND_CHANNEL_OPEN
+        bcc !+
+        lda #RED
+        sta $d020
+        rts                     // abort
+!:
+        // Have the ultimate place the file in the REU
+        // Note; reading the file using the read function seems to miss
+        // every first byte on each transfer. Doing this via the REU seems to
+        // work fine.
+
+        jsr ULT_FILE_READ_REU
+        jsr STATUS_OK
+        beq !+
+        sec                     // set carry bit to indicate problem
+        rts                     // return
+!:
+        // Setup the REU transfer initial state
+
+        jsr REU_SETUP_TRANSFER
+
+        // set zero page pointer to sector buffer in ram
+
+        lda #<sector_buffer
+        sta buffer
+        lda #>sector_buffer
+        sta buffer+1
+
+        // reset CMD string
+
+        jsr RESET_SECTOR
+        jsr RESET_TRACK
+
+        // start at track 1, sector 0
+
+        ldx #0
+        stx current_sector
+        inx
+        stx current_track
+
+        lda IMAGE_TYPE        
+        cmp #$01
+        beq image_type_d71      // Continue for D71
+        cmp #$02
+        beq image_type_d81      // Continue for D81
+        brk                     // This should be unreachanle. Extend here on more image types.        
+image_type_d71:
+        jsr WRITE_D71
+        rts
+image_type_d81:
+        jsr WRITE_D81
+        rts
+
 .align $100
 WRITE_SECTOR:
         jsr RESET_BLOCK_POINTER

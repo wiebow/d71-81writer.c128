@@ -34,13 +34,23 @@ Usage
 
 When the tools starts, make sure if you see the Ultimate DOS version appear
 under the header. If this does not happen, re-check your U2 settings!! The tool
-will not function properly until you see the DOS version.
+will not function until you see the DOS version.
 
 Select the option you want to perform:
 
 1 will allow you to set the Ultimate DOS path the tool is looking at.
-2 or 3 will prompt you to enter a D71 or D81 filename. the destination device is asked
-after that and writing will start.
+2 will prompt you to enter a D71 or D81 filename. 
+
+After entering a valid file name the destination device is asked.
+When a destination (device 8 - 11) is entered the transfer will begin.
+
+In case the filename does not end in .d71 or .d81 the user will be prompted to
+select the correct image type.
+
+Whenever return is pressed without entering anyhting the tool goes back to the beginning.
+
+A word of warning; this tool does not check if the devices matches the selected image.
+It will gladly try to write a D71 to a 1581. The behavior of such a mismatch is uncertain.
 
 Build the code
 =============

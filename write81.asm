@@ -16,58 +16,7 @@ the drive is a fast device (i.e. a 1571 in
 fast mode).
 */
 
-WRITE_81:
-        jsr ENTER_D81_FILE_NAME     // ask for the filename
-        jsr ULT_OPEN_FILE_READ      // attempt to open the file
-        jsr DISPLAY_ULT_STATUS      // get and print status
-        jsr STATUS_OK               // check status. 0=ok
-        beq !+
-        rts                         // abort
-!:
-        // ask for the device
-        jsr ENTER_DEVICE        // get destination id
-        // open command channel to device
-
-        jsr COMMAND_CHANNEL_OPEN
-        bcc !+
-        lda #RED
-        sta $d020
-        rts                     // abort
-!:
-        // Have the ultimate place the file in the REU
-        // Note; reading the file using the read function seems to miss
-        // every first byte on each transfer. Doing this via the REU seems to
-        // work fine.
-
-        jsr ULT_FILE_READ_REU
-        jsr STATUS_OK
-        beq !+
-        sec                     // set carry bit to indicate problem
-        rts                     // return
-!:
-        // Setup the REU transfer initial state
-
-        jsr REU_SETUP_TRANSFER
-
-        // set zero page pointer to sector buffer in ram
-
-        lda #<sector_buffer
-        sta buffer
-        lda #>sector_buffer
-        sta buffer+1
-
-        // reset CMD string
-
-        jsr RESET_SECTOR
-        jsr RESET_TRACK
-
-        // start at track 1, sector 0
-
-        ldx #0
-        stx current_sector
-        inx
-        stx current_track
-
+WRITE_D81:
         // set 1581 fast mode
 
         jsr SET_1581_FAST
@@ -85,7 +34,7 @@ WRITE_81:
         // open buffer channel for data
 
         jsr BUFFER_CHANNEL_OPEN
-        bcc write_d81
+        bcc write_d81_loop
         lda #WHITE
         sta $d020
         sec
@@ -93,7 +42,7 @@ WRITE_81:
 
         // actual write loop
 
-write_d81:
+write_d81_loop:
 
         jsr DISPLAY_PROGRESS            // print progress string
         jsr DISPLAY_PROGRESS_HOME       // move cursor to column 0
@@ -111,7 +60,7 @@ write_d81:
         lda current_sector              // which sector are we now?
         cmp #40                         // 1581 always has 40 sectors
         beq next_track_d81              // go to next track
-        jmp write_d81                   // do next sector in this track
+        jmp write_d81_loop              // do next sector in this track
 
 next_track_d81:
 
@@ -127,8 +76,7 @@ next_track_d81:
         inc current_track               // update track counter
         lda current_track
         cmp #81                         // all tracks done?
-        bne write_d81                   // do next track
-        jsr DISPLAY_DONE                // display done
+        bne write_d81_loop              // do next track
         clc                             // no error
         rts
 

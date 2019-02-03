@@ -6,23 +6,38 @@
 
 // ------------------------------------------
 // Ask for the d71 file name
-ENTER_D71_FILE_NAME:
-        lda #>str_enter_d71_file_name
-        ldx #<str_enter_d71_file_name
+ENTER_FILE_NAME:
+        lda #>str_enter_file_name
+        ldx #<str_enter_file_name
         jsr PRINT
         jsr GET_TEXT
         jsr NEW_LINE
         rts
 
 // ------------------------------------------
-// Ask for the d81 file name
-ENTER_D81_FILE_NAME:
-        lda #>str_enter_d81_file_name
-        ldx #<str_enter_d81_file_name
+// Ask for image type
+SELECT_IMAGE_TYPE:
+        lda #>str_select_image_type
+        ldx #<str_select_image_type
         jsr PRINT
-        jsr GET_TEXT
-        jsr NEW_LINE
+
+!:
+        jsr GETIN
+        beq !-
+        cmp #$0d                // enter is exit
+        bne !+
         rts
+!:
+        // determine action
+        cmp #$31
+        beq selected_d71
+        cmp #$32
+        beq selected_d81
+        rts
+selected_d71:
+        jmp SELECTED_D71_IMAGE
+selected_d81:
+        jmp SELECTED_D81_IMAGE
 
 // ------------------------------------------
 // Ask for the device number
@@ -36,6 +51,7 @@ ENTER_DEVICE:
         lda #0                  // reset device
         sta device
         ldy INPUT_LEN
+        // TODO: Len = 0 =rts
 device_digit:        
         // set the device number in the disk writer
         dey
@@ -85,18 +101,47 @@ ENTER_DOS_PATH:
         jsr GET_TEXT
         jsr NEW_LINE
         rts
+// ------------------------------------------
+// Strcmp (placed here as we are comparing user input)
+// Arguments:
+// str_a: First string
+// str_b: Second string
+// Returns comparison result in A:
+// -1: First string is less than second
+// 0: Strings are equal
+// 1; First string is greater than second
+.label str_a = $FC
+.label str_b = $FE
+STRCMP:
+    ldy #$00        
+scload:
+    lda (str_a), y    
+    cmp (str_b), y    
+    bne scdone      
+    iny             
+    cmp #$00        
+    bne scload      
+    lda #$00        
+    rts             
+scdone:
+    bcs scgrtr
+    lda #$FF
+    rts             
+scgrtr:
+    lda #$01       
+    rts
 
 // ------------------------------------------
 .encoding "petscii_mixed"
 str_enter_path:
         .text "Enter new path: "
         .byte 0
-str_enter_d71_file_name:
-        .text "D71 file name: "
-        .byte 0
-str_enter_d81_file_name:
-        .text "D81 file name: "
+str_enter_file_name:
+        .text "Disk image file name: "
         .byte 0
 str_enter_device:
         .text "Destination device: "
+        .byte 0
+str_select_image_type:
+        .text "1.D71 image, 2.D81 image"
         .byte 0

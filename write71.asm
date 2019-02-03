@@ -5,58 +5,7 @@
 
 // main entry
 // carry bit is set on return if an error occurs
-WRITE_71:
-        jsr ENTER_D71_FILE_NAME     // ask for the filename
-        jsr ULT_OPEN_FILE_READ      // attempt to open the file
-        jsr DISPLAY_ULT_STATUS      // get and print status
-        jsr STATUS_OK               // check status. 0=ok
-        beq !+
-        rts                         // abort
-!:
-        // ask for the device
-        jsr ENTER_DEVICE        // get destination id        
-        // open command channel to device
-
-        jsr COMMAND_CHANNEL_OPEN
-        bcc !+
-        lda #2
-        sta $d020
-        rts                     // abort
-!:
-        // Have the ultimate place the file in the REU
-        // Note; reading the file using the read function seems to miss
-        // every first byte on each transfer. Doing this via the REU seems to
-        // work fine.
-
-        jsr ULT_FILE_READ_REU
-        jsr STATUS_OK
-        beq !+
-        sec                     // set carry bit to indicate problem
-        rts                     // return
-!:
-        // Setup the REU transfer initial state
-
-        jsr REU_SETUP_TRANSFER
-
-        // set zero page pointer to sector buffer in ram
-
-        lda #<sector_buffer
-        sta buffer
-        lda #>sector_buffer
-        sta buffer+1
-
-        // reset CMD string
-
-        jsr RESET_SECTOR
-        jsr RESET_TRACK
-
-        // start at track 1, sector 0
-
-        ldx #0
-        stx current_sector
-        inx
-        stx current_track
-
+WRITE_D71:
         jsr SET_1571_MODE       // set drive in 1571 mode
 
         // check for fast serial
@@ -71,7 +20,7 @@ WRITE_71:
         // open buffer channel for data
 
         jsr BUFFER_CHANNEL_OPEN
-        bcc write_d71
+        bcc write_d71_loop
         lda #1
         sta $d020
         sec
@@ -79,7 +28,7 @@ WRITE_71:
 
         // actual write loop
 
-write_d71:
+write_d71_loop:
 
         jsr DISPLAY_PROGRESS            // print progress string
         jsr DISPLAY_PROGRESS_HOME       // move cursor to column 0
@@ -98,7 +47,7 @@ write_d71:
         lda sectors_1571,x              // get # sectors in this track
         cmp current_sector              // all track sectors done?
         beq next_track_d71              // go to next track
-        jmp write_d71                   // do next sector in this track
+        jmp write_d71_loop              // do next sector in this track
 
 next_track_d71:
 
@@ -114,8 +63,7 @@ next_track_d71:
         inc current_track               // update track counter
         lda current_track
         cmp #71                         // all tracks done?
-        bne write_d71                   // do next track
-        jsr DISPLAY_DONE                // display done
+        bne write_d71_loop              // do next track
         clc                             // no error
         rts
 

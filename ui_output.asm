@@ -12,12 +12,19 @@ DISPLAY_WELCOME:
         rts
 
 // ------------------------------------------
+// Display exit message
+DISPLAY_EXIT:
+        lda #>str_exit
+        ldx #<str_exit
+        jsr PRINT
+        rts
+
+// ------------------------------------------
 // display menu with 3 options.
 DISPLAY_MENU:
         lda #>str_menu
         ldx #<str_menu
         jsr PRINT
-        jsr NEW_LINE
         rts
 
 // ------------------------------------------
@@ -82,6 +89,21 @@ DISPLAY_OK:
         jsr PRINT
         rts
 
+// ------------------------------------------
+// Display D71 message
+DISPLAY_SELECTED_D71:
+        lda #>str_selected_d71
+        ldx #<str_selected_d71
+        jsr PRINT
+        rts
+
+// ------------------------------------------
+// Display D81 message
+DISPLAY_SELECTED_D81:
+        lda #>str_selected_d81
+        ldx #<str_selected_d81
+        jsr PRINT
+        rts
 
 // ------------------------------------------
 // Display device error message
@@ -152,11 +174,13 @@ stringaddr:
 .encoding "petscii_mixed"
 str_welcome:
         .byte $93 // clear
-        .byte $0e // lowercase set (lower-> upper, upper->lower)
-        .text "D71/81 writer C128 v1.1.0001"
+        .byte $0e, $08 // lowercase set (lower-> upper, upper->lower)
+        .text "D71/81 writer C128 v1.1"
         .byte $0d
-        .text "    by Ernoman and WdW"
+        .text "     by Ernoman and WdW"
         .byte $0d, 0
+str_exit:
+        .byte $09, $0d, 0        
 str_ult_dos_error:
         .text "! No Ultimate DOS detected."
         .byte $0d, $0d, 0
@@ -164,14 +188,16 @@ str_current_path:
         .text "Current DOS path is: "
         .byte 0
 str_menu:
-        .byte $0d
-        .text "1.change path, 2.write D71, 3.write D81"
+        .byte $0d, $0d        
+        .text "1.Change path, 2.Write Disk Image"
         .byte $0d, 0
 str_fail:
-        .text "Fail!"
+        .byte $0d
+        .text "Fail"
         .byte $0d, 0
 str_ok:
-        .text "OK."
+        .byte $0d
+        .text "OK"
         .byte $0d, 0
 str_track:
         .text "Track "
@@ -180,9 +206,15 @@ str_sector:
         .text "sector "
         .byte 0
 str_done:
-        .byte $0d,$0d
+        .byte $0d
         .text "Done!"
-        .byte 0
+        .byte $0d, $0d, 0
+str_selected_d71:
+        .text "Selected D71 image"
+        .byte $0d, 0
+str_selected_d81:
+        .text "Selected D81 image"
+        .byte $0d, 0        
 str_default_path:
         .text "/usb0/"
         .byte 0

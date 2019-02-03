@@ -35,6 +35,7 @@ FILTERED_INPUT:
     sta allowed+2
     lda #$00                // Zero characters received.
     sta INPUT_LEN
+    sta INPUT_BUFFER
     jsr print_cursor
 
 get_input:
