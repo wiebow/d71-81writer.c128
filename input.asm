@@ -35,6 +35,7 @@ FILTERED_INPUT:
     sta allowed+2
     lda #$00                // Zero characters received.
     sta INPUT_LEN
+    jsr print_cursor
 
 get_input:
     jsr GETIN
@@ -57,21 +58,27 @@ allowed:
     jmp allowed             // get next character
 
 input_ok:
+    lda INPUT_LEN
+    cmp MAXCHARS          // max length reached?
+    bne !+
+    dec INPUT_LEN         // replace last character in buffer
+    lda #$9d              // do crsr left  on screen
+    jsr BSOUT
+!:    
     lda LASTCHAR          // get typed character
     ldy INPUT_LEN         // get buffer index
     sta INPUT_BUFFER,y    // Add char to buffer
     jsr BSOUT             // Print it
-
+    jsr print_cursor
     inc INPUT_LEN         // update index
     lda INPUT_LEN
-    cmp MAXCHARS          // max length reached?
-    beq input_done        // yes. exit
     jmp get_input
 
 input_done:
     ldy INPUT_LEN
     lda #$00
     sta INPUT_BUFFER,y    // Zero-terminate the input buffer
+    jsr remove_cursor
     rts
 
 delete:
@@ -81,6 +88,18 @@ delete:
     lda #$14              // do back space on screen
     jsr BSOUT
     jmp get_input
+
+print_cursor:
+    lda #>CURSOR
+    ldx #<CURSOR
+    jsr PRINT
+    rts
+
+remove_cursor:
+    lda #>CURSOR_REM
+    ldx #<CURSOR_REM
+    jsr PRINT
+    rts
 
 
 DECIMAL_FILTER:
@@ -102,3 +121,8 @@ INPUT_LEN:
 
 INPUT_BUFFER:
   .fill 32, 0
+
+CURSOR:
+  .byte $12, $20, $92, $9d, 0
+CURSOR_REM:
+  .byte $20, 0

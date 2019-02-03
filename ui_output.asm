@@ -82,6 +82,15 @@ DISPLAY_OK:
         jsr PRINT
         rts
 
+
+// ------------------------------------------
+// Display device error message
+DISPLAY_ERROR_DEVICENR:
+        lda #>str_error_devicenr
+        ldx #<str_error_devicenr
+        jsr PRINT
+        rts
+
 // ------------------------------------------
 // Display the current track and sector
 DISPLAY_PROGRESS:
@@ -183,7 +192,9 @@ str_error_cmd:
 str_error_buffer:
         .text "! Cannot open buffer to "
         .byte 0
-
+str_error_devicenr:
+        .text "! Illegal device nr."
+        .byte $0d, 0        
 #if EMU
 str_emu:
         .byte $0d

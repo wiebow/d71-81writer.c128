@@ -25,24 +25,7 @@ WRITE_81:
         rts                         // abort
 !:
         // ask for the device
-
-        lda #0                  // reset device
-        sta device
-        ldy #1                  // permit 1 character
         jsr ENTER_DEVICE        // get destination id
-        lda INPUT_BUFFER
-        sec
-        sbc #$30
-        sta device              // store the number
-
-        // sanity check on device
-
-        lda device
-        cmp #8
-        beq !+
-        cmp #9
-        bne !-
-!:
         // open command channel to device
 
         jsr COMMAND_CHANNEL_OPEN
