@@ -169,4 +169,4 @@ fs_command:
         .text "U0>B1"
 fs_command_end:
 
-// see write71.asm for the rest of the common routines
+// see write.asm for the rest of the common routines
